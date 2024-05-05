@@ -1,29 +1,23 @@
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 import './Search.css';
 
-export class Search extends Component {
-  state = {
-    search: '',
-    type: 'all',
-  };
+export function Search({ searchMovies }) {
+  const [search, setSearch] = useState('');
+  const [type, setType] = useState('all');
 
-  handleUpdate = (event) => {
+  const handleUpdate = (event) => {
     if (event.key === 'Enter') {
-      this.props.searchFn(this.state.search);
+      searchMovies(search);
     }
   };
 
-  handleType = (searchType) => {
-    this.setState(
-      () => ({ type: searchType }),
-      () => {
-        this.props.searchFn(this.state.search, this.state.type);
-      },
-    );
+  const handleType = (searchType) => {
+    setType(searchType);
   };
 
-  render() {
-    const { search, type } = this.state;
+  useEffect(() => {
+    searchMovies(search, type)
+  }, [type]);
 
     return (
       <div className="row">
@@ -33,14 +27,14 @@ export class Search extends Component {
             placeholder="Search here ..."
             type="search"
             value={search}
-            onChange={(event) => this.setState({ search: event.target.value })}
-            onKeyUp={this.handleUpdate}
+            onChange={(event) => setSearch(event.target.value)}
+            onKeyUp={handleUpdate}
           />
         </div>
         <a
-          href="!#"
+          href="#"
           className="waves-effect waves-light btn"
-          onClick={() => this.props.searchFn(search, type)}
+          onClick={searchMovies(search, type)}
         >
           search
         </a>
@@ -51,7 +45,7 @@ export class Search extends Component {
               name={type}
               type="radio"
               checked={type === 'all'}
-              onChange={() => this.handleType('all')}
+              onChange={() => handleType('all')}
             />
             <span>All</span>
           </label>
@@ -61,7 +55,7 @@ export class Search extends Component {
               name={type}
               type="radio"
               checked={type === 'movie'}
-              onChange={() => this.handleType('movie')}
+              onChange={() => handleType('movie')}
             />
             <span>Movies</span>
           </label>
@@ -71,12 +65,11 @@ export class Search extends Component {
               name={type}
               type="radio"
               checked={type === 'series'}
-              onChange={() => this.handleType('series')}
+              onChange={() => handleType('series')}
             />
             <span>Serials</span>
           </label>
         </div>
       </div>
     );
-  }
 }

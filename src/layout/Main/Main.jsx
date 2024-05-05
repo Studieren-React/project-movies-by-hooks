@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 import './Main.css';
 
 import { MovieList } from '../../components/MovieList/MovieList';
@@ -8,11 +8,9 @@ import { Search } from '../../components/Search/Search';
 const BASE_URL = 'http://www.omdbapi.com/';
 const API_KEY = process.env.REACT_APP_API_KEY;
 
-export class Main extends Component {
-  state = {
-    movies: [],
-    busy: false,
-  };
+export function Main() {
+  const [movies, setMovies] = useState([]);
+  const [busy, setBusy] = useState(false);
 
   /**
    * Получение списка фильмов
@@ -20,7 +18,7 @@ export class Main extends Component {
    * @param {String} type Тип поиска - фильм или сериал
    * @returns
    */
-  fetchMovies = async (search = 'spring', type = '') => {
+  const fetchMovies = async (search, type) => {
     const searchQuery = search === '' ? 'spring' : search;
     const typeQuery = type === 'all' ? '' : type;
     const urlQuery = `${BASE_URL}?apikey=${API_KEY}&s=${searchQuery}&type=${typeQuery}`;
@@ -42,12 +40,15 @@ export class Main extends Component {
    * @param {String} type Тип поиска - фильм или сериал
    * @returns
    */
-  updateState = (search, type) => {
-    this.setState({ busy: true });
-    this.fetchMovies(search, type).then((movies) => {
+  const updateState = (search= 'spring', type= '') => {
+    setBusy(true);
+
+    fetchMovies(search, type).then((movies) => {
       const response = movies != null ? movies : [];
-      this.setState({ movies: response, busy: false });
-    });
+      setMovies(response);
+    }).finally(
+      () => setBusy(false)
+    );
   };
 
   /**
@@ -56,24 +57,23 @@ export class Main extends Component {
    * @param {String} type Тип поиска - фильм или сериал
    * @returns
    */
-  searchMovies = (search, type) => {
-    this.updateState(search, type);
+  const searchMovies = (search, type) => {
+    updateState(search, type);
   };
 
-  componentDidMount() {
-    this.updateState();
-  }
 
-  render() {
-    return (
-      <main className="container content">
-        <Search searchFn={this.searchMovies} />
-        {this.state.busy ? (
-          <Preloader />
-        ) : (
-          <MovieList movies={this.state.movies} />
-        )}
-      </main>
-    );
-  }
+  useEffect(() => {
+    updateState();
+  }, []);
+
+  return (
+    <main className="container content">
+      <Search searchMovies={searchMovies} />
+      {busy ? (
+        <Preloader />
+      ) : (
+        <MovieList movies={movies} />
+      )}
+    </main>
+  );
 }
